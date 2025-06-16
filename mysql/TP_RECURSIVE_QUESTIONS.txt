@@ -1,0 +1,8 @@
+• Quelle est la différence entre une requête récursive et une jointure classique ?
+Une requête récursive permet de parcourir une arborescence en s'auto appellant, une jointure classique permet de lier 2 tables sur des critères définis (id1 = id2) mais ne permet pas de parcourir une arborescence/hiérarchie.
+
+• Que se passe-t-il en cas de boucle infinie ? (ex : un parent se référence lui-même)
+La requête va tourner en continu sur le serveur (sauf si temps de timeout défini) et peut finir par faire crasher le serveur.
+
+• Comment limiter la profondeur de la récursion avec une condition ?
+Pour limiter la profondeur de la récursion avec une condition on peut créer une colonne qui s'incrémente à chaque récursion et via un where lui fixer une limite (ex: where boucle < 5).

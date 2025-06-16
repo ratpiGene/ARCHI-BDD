@@ -1,0 +1,31 @@
+Questions du tp 9 :
+1. Quelle est la différence entre l’approche utilisant ST_Distance_Sphere et l’approche naïve
+côté application ?
+ST_Distance_Sphere est une fonction SQL exécutée directement par le moteur MySQL, qui calcule la distance entre deux points sur Terre. De l'autre côte, l’approche naïve consiste à extraire toutes les données de la table dans l'application (ex : en Python), puis à calculer la distance entre chaque point et la position de référence à l’aide d’une fonction (ex : Haversine).
+
+2. Quels sont les avantages et inconvénients de chaque méthode ?
+MySQL : 
+- Intégré directement sur le moteur de la BDD
+- Evite de tout charger en mémoir côté back-end
+- Le manque d'index peut ralentir les recherches 
+
+Python :
+- Facile à lire
+- Plus souple car accès à plusieurs languages/librairies
+- Force à récupérer plus de données voir toute la table d'un coup 
+- Problèmes de scalabilité en fonction du volume de données
+
+3. Dans quel cas la recherche par proximité pourrait-elle être optimisée ? Donnez des pistes.
+La recherche par proximité doit être optimisée :
+- Quand la table contient des milliers voire millions d’entrées.
+- Si les requêtes sont fréquentes (ex : pour une API ou une carte interactive).
+
+Pistes :
+- indexation
+- bounding-box
+- utiliser un SGBD axé sur la recherche spatiale -> PostGIS
+
+4. Citez d’autres domaines où une recherche par proximité géographique est utile.
+- Applications de navigation : cartographie (Google Maps, Waze).
+- Livraison : logistique (trouver le dépôt le plus proche).
+- Réseaux sociaux : Recommandations géographiques (suggestion d'amis ou événements proches).
