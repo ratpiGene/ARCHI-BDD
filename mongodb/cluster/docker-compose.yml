@@ -1,0 +1,87 @@
+version: "3.8"
+
+services:
+  configsvr:
+    image: mongo:8.0
+    container_name: configsvr
+    volumes:
+      - ./configdb:/data/configdb
+      - ./init-config.js:/scripts/init-config.js
+    ports:
+      - "27017:27017"
+    command: >
+      bash -c "
+        mongod --configsvr --replSet configReplSet --port 27017 --bind_ip_all --dbpath /data/configdb &
+        until mongosh --eval 'db.runCommand({ ping: 1 })' --port 27017; do echo '🕒 attente configsvr...'; sleep 1; done &&
+        mongosh --port 27017 /scripts/init-config.js &&
+        tail -f /dev/null
+      "
+
+  shard1:
+    image: mongo:8.0
+    container_name: shard1
+    volumes:
+      - ./shard1:/data/db
+      - ./init-shard1.js:/scripts/init-shard1.js
+    ports:
+      - "27018:27018"
+    command: >
+      bash -c "
+        mongod --shardsvr --replSet shardReplSet1 --port 27018 --bind_ip_all --dbpath /data/db &
+        until mongosh --eval 'db.runCommand({ ping: 1 })' --port 27018; do echo '🕒 attente shard1...'; sleep 1; done &&
+        mongosh --port 27018 /scripts/init-shard1.js &&
+        tail -f /dev/null
+      "
+
+  shard2:
+    image: mongo:8.0
+    container_name: shard2
+    volumes:
+      - ./shard2:/data/db
+      - ./init-shard2.js:/scripts/init-shard2.js
+    ports:
+      - "27019:27019"
+    command: >
+      bash -c "
+        mongod --shardsvr --replSet shardReplSet2 --port 27019 --bind_ip_all --dbpath /data/db &
+        until mongosh --eval 'db.runCommand({ ping: 1 })' --port 27019; do echo '🕒 attente shard2...'; sleep 1; done &&
+        mongosh --port 27019 /scripts/init-shard2.js &&
+        tail -f /dev/null
+      "
+
+  shard3:
+    image: mongo:8.0
+    container_name: shard3
+    volumes:
+      - ./shard3:/data/db
+      - ./init-shard3.js:/scripts/init-shard3.js
+    ports:
+      - "27020:27020"
+    command: >
+      bash -c "
+        mongod --shardsvr --replSet shardReplSet3 --port 27020 --bind_ip_all --dbpath /data/db &
+        until mongosh --eval 'db.runCommand({ ping: 1 })' --port 27020; do echo '🕒 attente shard3...'; sleep 1; done &&
+        mongosh --port 27020 /scripts/init-shard3.js &&
+        tail -f /dev/null
+      "
+
+  mongos:
+    image: mongo:8.0
+    container_name: mongos
+    depends_on:
+      - configsvr
+      - shard1
+      - shard2
+      - shard3
+    volumes:
+      - ./init-mongos.js:/scripts/init-mongos.js
+    ports:
+      - "27021:27021"
+    command: >
+      bash -c "
+        sleep 10 &&
+        mongos --configdb configReplSet/configsvr:27017 --port 27021 --bind_ip_all &
+        until mongosh --eval 'sh.status()' --port 27021; do echo '🕒 attente mongos...'; sleep 1; done &&
+        mongosh --port 27021 /scripts/init-mongos.js &&
+        tail -f /dev/null
+      "
